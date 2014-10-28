@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.oldnumeric.random_array import random_integers
 
-
 yUa2 = []
 yUa6 = []
 yUa10 = []
@@ -55,11 +54,14 @@ Ip6 = np.average(yIp6)
 Ip10 = np.average(yIp10)
 
 plt.subplot(1, 2, 1)
+plt.ylim(450, 1000)
+plt.xlim(1, 11)
 plt.errorbar(x, [Ua2, Ua6, Ua10], yerr=25)
 plt.errorbar(x, [Ia2, Ia6, Ia10], yerr=25)
 
 plt.subplot(1, 2, 2)
+plt.ylim(450, 1000)
+plt.xlim(1, 11)
 plt.errorbar(x, [Up2, Up6, Up10], yerr=25)
 plt.errorbar(x, [Ip2, Ip10, Ip10], yerr=25)
 plt.show()
-
