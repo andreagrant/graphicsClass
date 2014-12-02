@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3 Demo: SVG with data</title>
+		<script type="text/javascript" src="d3/d3.v3.js"></script>
+		<style type="text/css">
+			/* No style rules here yet */		
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">			
+			//Width and height
+			var w = 900;
+			var h = 500;
+			
+			//Data
+			var dataset = [];                        //Initialize empty array
+			for (var i = 0; i < 40; i++) {           //Loop 25 times
+    			var x = (Math.random() * 800)  ;	 // Generate x and y pos
+    			var y = (Math.random() * 400)  ;
+    			var z =  Array(x, y);
+    			dataset.push(z);             //Add new number to array
+			}
+			
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			var circles = svg.selectAll("circle")
+			    .data(dataset)
+			    .enter()
+			    .append("circle");
+
+			circles.attr("cx", function(d) {
+        				return d[0];
+   					})
+   					.attr("cy", function(d) {
+        			return d[1];
+  					})
+   					.attr("r", 20)
+					.attr("fill", "rgba(0,0,0,0)")
+				    .attr("stroke", "rgba(100,100,100,0.1)")
+				    .attr("stroke-width", 4);
+		</script>
+	</body>
+</html>
