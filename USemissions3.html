@@ -1,0 +1,563 @@
+<!DOCTYPE HTML PUBLIC>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>US residential electricity</title>
+		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+		<style type="text/css">
+			.axis path
+			.axis line{
+				fill: blue;
+				stroke: red;
+				stroke-width; 1; 
+				shape-rendering: crispEdges;
+			}
+			.axis text{
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+			.grid .tick {
+			    stroke: lightgrey;
+			    stroke-opacity: 0.7;
+			    shape-rendering: crispEdges;
+			}
+			.grid path {
+			          stroke-width: 0;
+			}
+//			path:hover {
+//				fill: orange;
+//			}
+		</style>  
+	</head>
+	
+	<body>
+		<h3>US residential electricity fuel sources and emissions
+			<p>Data from <a href="http://www.eia.gov/electricity/data.cfm#consumption">http://www.eia.gov/electricity/data.cfm#consumption</a></h3>
+		
+		<script type="text/javascript">
+			//figure size vars
+			//size of the svg canvas are w and h
+			var w=1024;
+			var h=2*w/3;
+			//now set some margins inside the canvas for the graph
+			//leave a big space to the right for the map
+			var margin={top: 40, right: 2*w/3, bottom: 40, left: 40};
+			width=w-margin.left-margin.right;
+			height=0.5*(h-margin.top-margin.bottom);
+			
+			//list of states
+			var stateList={"United States":"UnitedStates","Connecticut":"Connecticut","Maine":"Maine","Massachusetts":"Massachusetts","New Hampshire":"NewHampshire","Rhode Island":"RhodeIsland","Vermont":"Vermont","New Jersey":"NewJersey","New York":"NewYork","Pennsylvania":"Pennsylvania","Illinois":"Illinois","Indiana":"Indiana","Michigan":"Michigan","Ohio":"Ohio","Wisconsin":"Wisconsin","Iowa":"Iowa","Kansas":"Kansas","Minnesota":"Minnesota","Missouri":"Missouri","Nebraska":"Nebraska","North Dakota":"NorthDakota","South Dakota":"SouthDakota","Delaware":"Delaware","Florida":"Florida","Georgia":"Georgia","Maryland":"Maryland","North Carolina":"NorthCarolina","South Carolina":"SouthCarolina","Virginia":"Virginia","West Virginia":"WestVirginia","Alabama":"Alabama","Kentucky":"Kentucky","Mississippi":"Mississippi","Tennessee":"Tennessee","Arkansas":"Arkansas","Louisiana":"Louisiana","Oklahoma":"Oklahoma","Texas":"Texas","Arizona":"Arizona","Colorado":"Colorado","Idaho":"Idaho","Montana":"Montana","Nevada":"Nevada","New Mexico":"NewMexico","Utah":"Utah","Wyoming":"Wyoming","California":"California","Oregon":"Oregon","Washington":"Washington","Alaska":"Alaska","Hawaii":"Hawaii"};
+			//list of fuels
+			var fuelTypes=["all fuels","coal","petroleum liquids","petroleum coke","natural gas","other gases","nuclear","conventional hydroelectric","other renewables","wind","solar","geothermal","biomass","wood and wood-derived","other biomass","pumped hydroelectric","other"];
+			//set the axes up (linear, give the range as the plot size)
+			var x = d3.scale.linear().range([0, width]);
+//			var x = d3.scale.ordinal().rangeRoundBands([0, width],0.05);
+			var y = d3.scale.linear().range([height, 0]);
+			var z = d3.scale.category10();//colors for bars?
+			var yEm = d3.scale.linear().range([height, 0]);
+			
+			//define the axes
+			var xAxis = d3.svg.axis()
+				.scale(x)
+				.orient("bottom")
+				.ticks(17);
+			var yAxis = d3.svg.axis()
+				.scale(y)
+				.orient("left")
+				.ticks(10);
+				
+			//draw the canvas
+			var svg=d3.select("body")
+				.append("svg")
+					.attr("width",w)
+					.attr("height",h)
+				.append("g")
+					.attr("transform",
+						"translate(" +margin.left + "," +margin.top + ")");
+			
+			//define a map projection to use when I load the map data
+			//probably have to fix the location and size
+			var projection = d3.geo.albersUsa()
+//						.translate([w/2, h/2])
+						.translate([1.25*w/2, h/2])
+						.scale([900]);
+			//define the "path generator" for the map elements
+			var mapPath = d3.geo.path()
+						.projection(projection);
+			
+			//get the data from csv
+			d3.csv("2013FuelsWithPct.csv",function(error,data) {
+				//console.log(data);
+			
+				data.forEach(function(d) {
+//					d.fuel = d.fuel;
+//					d.US = +d.US;
+//					d.USpct = +d.USpct;
+					d.fuel=d.fuel;
+					d.UnitedStates=+d.UnitedStates;
+					d.UnitedStatesPct=+d.UnitedStatesPct;
+					d.Connecticut=+d.Connecticut;
+					d.ConnecticutPct=+d.ConnecticutPct;
+					d.Maine=+d.Maine;
+					d.MainePct=+d.MainePct;
+					d.Massachusetts=+d.Massachusetts;
+					d.MassachusettsPct=+d.MassachusettsPct;
+					d.NewHampshire=+d.NewHampshire;
+					d.NewHampshirePct=+d.NewHampshirePct;
+					d.RhodeIsland=+d.RhodeIsland;
+					d.RhodeIslandPct=+d.RhodeIslandPct;
+					d.Vermont=+d.Vermont;
+					d.VermontPct=+d.VermontPct;
+					d.NewJersey=+d.NewJersey;
+					d.NewJerseyPct=+d.NewJerseyPct;
+					d.NewYork=+d.NewYork;
+					d.NewYorkPct=+d.NewYorkPct;
+					d.Pennsylvania=+d.Pennsylvania;
+					d.PennsylvaniaPct=+d.PennsylvaniaPct;
+					d.Illinois=+d.Illinois;
+					d.IllinoisPct=+d.IllinoisPct;
+					d.Indiana=+d.Indiana;
+					d.IndianaPct=+d.IndianaPct;
+					d.Michigan=+d.Michigan;
+					d.MichiganPct=+d.MichiganPct;
+					d.Ohio=+d.Ohio;
+					d.OhioPct=+d.OhioPct;
+					d.Wisconsin=+d.Wisconsin;
+					d.WisconsinPct=+d.WisconsinPct;
+					d.Iowa=+d.Iowa;
+					d.IowaPct=+d.IowaPct;
+					d.Kansas=+d.Kansas;
+					d.KansasPct=+d.KansasPct;
+					d.Minnesota=+d.Minnesota;
+					d.MinnesotaPct=+d.MinnesotaPct;
+					d.Missouri=+d.Missouri;
+					d.MissouriPct=+d.MissouriPct;
+					d.Nebraska=+d.Nebraska;
+					d.NebraskaPct=+d.NebraskaPct;
+					d.NorthDakota=+d.NorthDakota;
+					d.NorthDakotaPct=+d.NorthDakotaPct;
+					d.SouthDakota=+d.SouthDakota;
+					d.SouthDakotaPct=+d.SouthDakotaPct;
+					d.Delaware=+d.Delaware;
+					d.DelawarePct=+d.DelawarePct;
+					d.Florida=+d.Florida;
+					d.FloridaPct=+d.FloridaPct;
+					d.Georgia=+d.Georgia;
+					d.GeorgiaPct=+d.GeorgiaPct;
+					d.Maryland=+d.Maryland;
+					d.MarylandPct=+d.MarylandPct;
+					d.NorthCarolina=+d.NorthCarolina;
+					d.NorthCarolinaPct=+d.NorthCarolinaPct;
+					d.SouthCarolina=+d.SouthCarolina;
+					d.SouthCarolinaPct=+d.SouthCarolinaPct;
+					d.Virginia=+d.Virginia;
+					d.VirginiaPct=+d.VirginiaPct;
+					d.WestVirginia=+d.WestVirginia;
+					d.WestVirginiaPct=+d.WestVirginiaPct;
+					d.Alabama=+d.Alabama;
+					d.AlabamaPct=+d.AlabamaPct;
+					d.Kentucky=+d.Kentucky;
+					d.KentuckyPct=+d.KentuckyPct;
+					d.Mississippi=+d.Mississippi;
+					d.MississippiPct=+d.MississippiPct;
+					d.Tennessee=+d.Tennessee;
+					d.TennesseePct=+d.TennesseePct;
+					d.Arkansas=+d.Arkansas;
+					d.ArkansasPct=+d.ArkansasPct;
+					d.Louisiana=+d.Louisiana;
+					d.LouisianaPct=+d.LouisianaPct;
+					d.Oklahoma=+d.Oklahoma;
+					d.OklahomaPct=+d.OklahomaPct;
+					d.Texas=+d.Texas;
+					d.TexasPct=+d.TexasPct;
+					d.Arizona=+d.Arizona;
+					d.ArizonaPct=+d.ArizonaPct;
+					d.Colorado=+d.Colorado;
+					d.ColoradoPct=+d.ColoradoPct;
+					d.Idaho=+d.Idaho;
+					d.IdahoPct=+d.IdahoPct;
+					d.Montana=+d.Montana;
+					d.MontanaPct=+d.MontanaPct;
+					d.Nevada=+d.Nevada;
+					d.NevadaPct=+d.NevadaPct;
+					d.NewMexico=+d.NewMexico;
+					d.NewMexicoPct=+d.NewMexicoPct;
+					d.Utah=+d.Utah;
+					d.UtahPct=+d.UtahPct;
+					d.Wyoming=+d.Wyoming;
+					d.WyomingPct=+d.WyomingPct;
+					d.California=+d.California;
+					d.CaliforniaPct=+d.CaliforniaPct;
+					d.Oregon=+d.Oregon;
+					d.OregonPct=+d.OregonPct;
+					d.Washington=+d.Washington;
+					d.WashingtonPct=+d.WashingtonPct;
+					d.Alaska=+d.Alaska;
+					d.AlaskaPct=+d.AlaskaPct;
+					d.Hawaii=+d.Hawaii;
+					d.HawaiiPct=+d.HawaiiPct;
+					//console.log(d.UnitedStatesPct);
+					//console.log(d.Hawaii);
+					
+					});
+				//at this point, the data is stored in "data" but I will
+				//mostly access it through functions where I use
+				//the dynamic variable "d" and call d.fuel, etc
+				
+				
+				//load the map data
+				d3.json("us-states.json", function(json) {
+					//first, loop through the data to get state names
+					//and grab relevant emissions data?
+					for (var i=0; i<json.features.length; i++) {
+						//state name
+						var jsonState = json.features[i].properties.name;
+						//grab the state name fro my keyed array
+						var dataState=stateList[jsonState];
+						//thisData=d.dataStatePct;
+//						console.log(jsonState);
+//						console.log(json.features.EmissionsData);
+					}
+					var stateCircle={};
+					//bind the map data and create a path for each feature
+					svg.selectAll("path")
+						.data(json.features)
+						.enter()
+						.append("path")
+						.attr("d",mapPath)
+						.style("fill","steelblue")
+						.on("mouseover", function(d) {
+							d3.select(this)
+								.style("fill", "lightgreen");
+								//console.log(this);
+								
+								thisState=d.properties.name;
+								svg.append("g")
+									.append("text")
+									.attr("x", 300)
+									.attr("y", 70)
+									.text(thisState)
+									.style("fill","lightgreen")
+									.attr("font-size",16)
+									.attr("font-family","serif")
+									.attr("text-anchor","middle")
+									.attr("class","states");
+
+								//console.log(d.properties.name);
+								svg.selectAll("dot")
+										.data(data)
+									.enter().append("circle")
+										.attr("r",7)
+										.attr("cx",function(d,i) {
+											return i*width/data.length+10;})
+										.attr("cy",function(d) {
+											//console.log(thisState);
+										if (thisState =="Connecticut") {
+											thisData = yEm(d.Connecticut);
+											thisDataPct = y(d.ConnecticutPct);
+										}
+										else if (thisState =="Maine") {
+											thisData = yEm(d.Maine);
+											thisDataPct = y(d.MainePct);
+										}
+										else if (thisState =="Massachusetts") {
+											thisData = yEm(d.Massachusetts);
+											thisDataPct = y(d.MassachusettsPct);
+										}
+										else if (thisState =="New Hampshire") {
+											thisData = yEm(d.NewHampshire);
+											thisDataPct = y(d.NewHampshirePct);
+										}
+										else if (thisState =="Rhode Island") {
+											thisData = yEm(d.RhodeIsland);
+											thisDataPct = y(d.RhodeIslandPct);
+										}
+										else if (thisState =="Vermont") {
+											thisData = yEm(d.Vermont);
+											thisDataPct = y(d.VermontPct);
+										}
+										else if (thisState =="New Jersey") {
+											thisData = yEm(d.NewJersey);
+											thisDataPct = y(d.NewJerseyPct);
+										}
+										else if (thisState =="New York") {
+											thisData = yEm(d.NewYork);
+											thisDataPct = y(d.NewYorkPct);
+										}
+										else if (thisState =="Pennsylvania") {
+											thisData = yEm(d.Pennsylvania);
+											thisDataPct = y(d.PennsylvaniaPct);
+										}
+										else if (thisState =="Illinois") {
+											thisData = yEm(d.Illinois);
+											thisDataPct = y(d.IllinoisPct);
+										}
+										else if (thisState =="Indiana") {
+											thisData = yEm(d.Indiana);
+											thisDataPct = y(d.IndianaPct);
+										}
+										else if (thisState =="Michigan") {
+											thisData = yEm(d.Michigan);
+											thisDataPct = y(d.MichiganPct);
+										}
+										else if (thisState =="Ohio") {
+											thisData = yEm(d.Ohio);
+											thisDataPct = y(d.OhioPct);
+										}
+										else if (thisState =="Wisconsin") {
+											thisData = yEm(d.Wisconsin);
+											thisDataPct = y(d.WisconsinPct);
+										}
+										else if (thisState =="Iowa") {
+											thisData = yEm(d.Iowa);
+											thisDataPct = y(d.IowaPct);
+										}
+										else if (thisState =="Kansas") {
+											thisData = yEm(d.Kansas);
+											thisDataPct = y(d.KansasPct);
+										}
+										else if (thisState =="Minnesota") {
+											thisData = yEm(d.Minnesota);
+											thisDataPct = y(d.MinnesotaPct);
+										}
+										else if (thisState =="Missouri") {
+											thisData = yEm(d.Missouri);
+											thisDataPct = y(d.MissouriPct);
+										}
+										else if (thisState =="Nebraska") {
+											thisData = yEm(d.Nebraska);
+											thisDataPct = y(d.NebraskaPct);
+										}
+										else if (thisState =="North Dakota") {
+											thisData = yEm(d.NorthDakota);
+											thisDataPct = y(d.NorthDakotaPct);
+										}
+										else if (thisState =="South Dakota") {
+											thisData = yEm(d.SouthDakota);
+											thisDataPct = y(d.SouthDakotaPct);
+										}
+										else if (thisState =="Delaware") {
+											thisData = yEm(d.Delaware);
+											thisDataPct = y(d.DelawarePct);
+										}
+										else if (thisState =="Florida") {
+											thisData = yEm(d.Florida);
+											thisDataPct = y(d.FloridaPct);
+										}
+										else if (thisState =="Georgia") {
+											thisData = yEm(d.Georgia);
+											thisDataPct = y(d.GeorgiaPct);
+										}
+										else if (thisState =="Maryland") {
+											thisData = yEm(d.Maryland);
+											thisDataPct = y(d.MarylandPct);
+										}
+										else if (thisState =="North Carolina") {
+											thisData = yEm(d.NorthCarolina);
+											thisDataPct = y(d.NorthCarolinaPct);
+										}
+										else if (thisState =="South Carolina") {
+											thisData = yEm(d.SouthCarolina);
+											thisDataPct = y(d.SouthCarolinaPct);
+										}
+										else if (thisState =="Virginia") {
+											thisData = yEm(d.Virginia);
+											thisDataPct = y(d.VirginiaPct);
+										}
+										else if (thisState =="West Virginia") {
+											thisData = yEm(d.WestVirginia);
+											thisDataPct = y(d.WestVirginiaPct);
+										}
+										else if (thisState =="Alabama") {
+											thisData = yEm(d.Alabama);
+											thisDataPct = y(d.AlabamaPct);
+										}
+										else if (thisState =="Alabama") {
+											thisData = yEm(d.Alabama);
+											thisDataPct = y(d.AlabamaPct);
+										}
+										else if (thisState =="Mississippi") {
+											thisData = yEm(d.Mississippi);
+											thisDataPct = y(d.MississippiPct);
+										}
+										else if (thisState =="Tennessee") {
+											thisData = yEm(d.Tennessee);
+											thisDataPct = y(d.TennesseePct);
+										}
+										else if (thisState =="Arkansas") {
+											thisData = yEm(d.Arkansas);
+											thisDataPct = y(d.ArkansasPct);
+										}
+										else if (thisState =="Louisiana") {
+											thisData = yEm(d.Louisiana);
+											thisDataPct = y(d.LouisianaPct);
+										}
+										else if (thisState =="Oklahoma") {
+											thisData = yEm(d.Oklahoma);
+											thisDataPct = y(d.OklahomaPct);
+										}
+										else if (thisState =="Texas") {
+											thisData = yEm(d.Texas);
+											thisDataPct = y(d.TexasPct);
+										}
+										else if (thisState =="Arizona") {
+											thisData = yEm(d.Arizona);
+											thisDataPct = y(d.ArizonaPct);
+										}
+										else if (thisState =="Colorado") {
+											thisData = yEm(d.Colorado);
+											thisDataPct = y(d.ColoradoPct);
+										}
+										else if (thisState =="Idaho") {
+											thisData = yEm(d.Idaho);
+											thisDataPct = y(d.IdahoPct);
+										}
+										else if (thisState =="Montana") {
+											thisData = yEm(d.Montana);
+											thisDataPct = y(d.MontanaPct);
+										}
+										else if (thisState =="Nevada") {
+											thisData = yEm(d.Nevada);
+											thisDataPct = y(d.NevadaPct);
+										}
+										else if (thisState =="New Mexico") {
+											thisData = yEm(d.NewMexico);
+											thisDataPct = y(d.NewMexicoPct);
+										}
+										else if (thisState =="Utah") {
+											thisData = yEm(d.Utah);
+											thisDataPct = y(d.UtahPct);
+										}
+										else if (thisState =="Wyoming") {
+											thisData = yEm(d.Wyoming);
+											thisDataPct = y(d.WyomingPct);
+										}
+										else if (thisState =="California") {
+											thisData = yEm(d.California);
+											thisDataPct = y(d.CaliforniaPct);
+										}
+										else if (thisState =="Oregon") {
+											thisData = yEm(d.Oregon);
+											thisDataPct = y(d.OregonPct);
+										}
+										else if (thisState =="Washington") {
+											thisData = yEm(d.Washington);
+											thisDataPct = y(d.WashingtonPct);
+										}
+										else if (thisState =="Alaska") {
+											thisData = yEm(d.Alaska);
+											thisDataPct = y(d.AlaskaPct);
+										}
+										else if (thisState =="Hawaii") {
+											thisData = yEm(d.Hawaii);
+											thisDataPct = y(d.HawaiiPct);
+										}											
+											return thisDataPct;  
+										})
+										.attr("class", "states")
+										.style("fill","lightgreen");
+						})//close mouseover
+						.on("mouseout", function(d) {
+							d3.select(this)
+								.style("fill", "steelblue");
+								d3.selectAll(".states").remove()
+
+						})//close mouseover
+						//.on("click", function() ........
+						;
+				
+				
+					//scale the data
+					x.domain([0,17]);
+//					x.domain(d3.range(data.length));
+//						x.domain(fuelTypes);
+//					xAxis.tickValues(function(i) {
+//						return fuelTypes[i]
+//					});
+					y.domain([0,100]);
+					
+					//draw dots
+					svg.selectAll("dot")
+							.data(data)
+						.enter().append("circle")
+							.attr("r",8)
+							.attr("cx",function(d,i) {
+								//console.log(d.UnitedStatesPct);
+								//console.log(i*width/data.length);
+								return i*width/data.length+10;})
+							.attr("cy",function(d) {return y(d.UnitedStatesPct);  })
+							.style("fill","steelblue");
+	
+					//draw lines
+					svg.selectAll("line")
+							.data(data)
+						.enter().append("line")
+							.attr("x1",function(d,i) {
+								return i*width/data.length+10;})
+							.attr("y1",function(d) {
+								return y(d.UnitedStatesPct);  })
+							.attr("x2",function(d,i) {
+								return i*width/data.length+10;})
+							.attr("y1",y(0))
+							.attr("stroke-width", 0.1)
+							.attr("stroke","gray");
+
+								
+					
+					//draw an x axis
+					svg.append("g")
+							.attr("class", "x axis")
+							.attr("transform", "translate(0," + height + ")")
+							.call(xAxis)
+								.selectAll("text")
+								.style("text-anchor","end")
+								.attr("transform","translate(-4, 10) rotate(-90) ")
+								.text(function(i) { return fuelTypes[i]; })
+//						.append("text")
+//							.attr("class", "label")
+//							.attr("x", width)
+//							.attr("y", -6)
+//							.style("text-anchor", "end")
+//							.text("Fuel source");
+					//y axis
+					svg.append("g")
+							.attr("class", "y axis")
+							.call(yAxis)
+						.append("text")
+							.attr("class", "label")
+							.attr("transform", "rotate(-90)")
+							.attr("y", -40)
+							.attr("dy", "0.71em")
+							.style("text-anchor", "end")
+							.text("Electricity generation (Pct of total)");
+					svg.append("g")
+						.append("text")
+						.attr("x", 300)
+						.attr("y", 50)
+						.text("United States")
+						.style("fill","steelblue")
+						.attr("font-size",16)
+						.attr("font-family","serif")
+						.attr("text-anchor","middle");
+						
+//					//manually label x axis
+//					svg.append("g")
+//						.append("text")
+//						.attr("x", function(d) {
+//							return i*width/data.length;})
+//						.attr("y",50)
+//						.attr("transform", "rotate(-90)")
+//						.text(function(i) {
+//							return fuelTypes[i];
+//						})
+//						.attr("font-size",12)
+//						.attr("font-family","sans-serif")
+//						.attr("text-anchor","end");
+							
+				}); //close the json call
+			
+		}); //close csv cell
+		</script>		
+	</body>
+	
+</html>	
